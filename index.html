@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyFlow - Modern Student Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/uuid@9.0.0/dist/umd/uuid.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    .glass {
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    }
+    .gradient-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .gradient-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .gradient-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    .gradient-4 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+    .gradient-5 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 min-h-screen overflow-hidden relative">
+  
+  <!-- Floating Particles Background -->
+  <canvas id="particles-canvas" class="absolute inset-0 z-0 pointer-events-none"></canvas>
+
+  <!-- Sidebar Overlay -->
+  <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden hidden"></div>
+
+  <div class="flex h-screen overflow-hidden relative z-10">
+    <!-- Sidebar -->
+    <div id="sidebar" class="glass fixed left-0 top-0 h-full w-72 p-8 transition-all duration-500 z-50 lg:relative lg:translate-x-0 shadow-2xl border-r-0">
+      <!-- Logo & Toggle -->
+      <div class="flex items-center justify-between mb-12">
+        <div class="flex items-center space-x-3">
+          <div class="w-12 h-12 gradient-1 rounded-2xl flex items-center justify-center shadow-lg">
+            <i class="fas fa-graduation-cap text-white text-xl"></i>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent">StudyFlow</h1>
+            <p class="text-xs text-gray-400 font-medium tracking-wide">Productivity Redefined</p>
+          </div>
+        </div>
+        <button id="toggle-sidebar" class="lg:hidden p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all">
+          <i class="fas fa-times text-xl"></i>
+        </button>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="space-y-3 mb-12">
+        <button data-page="dashboard" class="nav-btn w-full flex items-center space-x-4 p-5 rounded-2xl text-left transition-all duration-300 group hover:scale-[1.02]">
+          <div class="w-12 h-12 gradient-3 rounded-xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
+            <i class="fas fa-chart-line text-lg"></i>
+          </div>
+          <span class="font-semibold text-white">Dashboard</span>
+        </button>
+        <button data-page="subjects" class="nav-btn w-full flex items-center space-x-4 p-5 rounded-2xl text-left transition-all duration-300 group hover:scale-[1.02]">
+          <div class="w-12 h-12 gradient-4 rounded-xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
+            <i class="fas fa-book text-lg"></i>
+          </div>
+          <span class="font-semibold text-white">Subjects</span>
+        </button>
+        <button data-page="todos" class="nav-btn w-full flex items-center space-x-4 p-5 rounded-2xl text-left transition-all duration-300 group hover:scale-[1.02]">
+          <div class="w-12 h-12 gradient-2 rounded-xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
+            <i class="fas fa-tasks text-lg"></i>
+          </div>
+          <span class="font-semibold text-white">To-Do</span>
+        </button>
+      </nav>
+
+      <!-- Subjects Quick Access -->
+      <div class="space-y-3">
+        <div class="flex items-center space-x-3 text-white/80 text-sm font-semibold uppercase tracking-wider">
+          <div class="w-4 h-1 gradient-1 rounded-full"></div>
+          <span>Quick Subjects</span>
+        </div>
+        <div id="subjects-list" class="max-h-64 overflow-y-auto space-y-2 pr-2"></div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-8 overflow-y-auto w-full lg:ml-72">
+      
+      <!-- Dashboard -->
+      <section id="dashboard-page" class="page active">
+        <!-- Hero -->
+        <div class="text-center mb-16 fade-in">
+          <div class="inline-block p-4 gradient-1 rounded-3xl shadow-2xl mb-6">
+            <i class="fas fa-rocket text-3xl text-white"></i>
+          </div>
+          <h1 class="text-5xl md:text-6xl font-black bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent mb-6 leading-tight">
+            StudyFlow
+          </h1>
+          <div class="max-w-3xl mx-auto">
+            <blockquote id="quote" class="text-xl md:text-2xl text-gray-300 italic font-medium bg-white/10 backdrop-blur-sm p-8 rounded-3xl glass border border-white/20 shadow-2xl">
+              Loading your daily motivation...
+            </blockquote>
+          </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <div class="glass p-8 rounded-3xl text-center group hover:scale-105 transition-all duration-500 cursor-pointer">
+            <div class="w-20 h-20 gradient-3 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl group-hover:rotate-12 transition-transform">
+              <i class="fas fa-clock text-2xl text-white"></i>
+            </div>
+            <div id="today-count" class="text-4xl font-black text-white mb-2">0</div>
+            <div class="text-gray-300 font-medium">Today's Tasks</div>
+          </div>
+          <div class="glass p-8 rounded-3xl text-center group hover:scale-105 transition-all duration-500 cursor-pointer">
+            <div class="w-20 h-20 gradient-4 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl group-hover:rotate-12 transition-transform">
+              <i class="fas fa-fire text-2xl text-white"></i>
+            </div>
+            <div id="urgent-count" class="text-4xl font-black text-white mb-2">0</div>
+            <div class="text-gray-300 font-medium">Urgent Tasks</div>
+          </div>
+          <div class="glass p-8 rounded-3xl text-center group hover:scale-105 transition-all duration-500 cursor-pointer">
+            <div class="w-20 h-20 gradient-2 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl group-hover:rotate-12 transition-transform">
+              <i class="fas fa-book-open text-2xl text-white"></i>
+            </div>
+            <div id="subjects-count" class="text-4xl font-black text-white mb-2">0</div>
+            <div class="text-gray-300 font-medium">Subjects</div>
+          </div>
+          <div class="glass p-8 rounded-3xl text-center group hover:scale-105 transition-all duration-500 cursor-pointer">
+            <div class="w-20 h-20 gradient-5 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl group-hover:rotate-12 transition-transform">
+              <i class="fas fa-check-circle text-2xl text-white"></i>
+            </div>
+            <div id="todos-count" class="text-4xl font-black text-white mb-2">0</div>
+            <div class="text-gray-300 font-medium">To-Do Items</div>
+          </div>
+        </div>
+
+        <!-- Today's Tasks -->
+        <div class="glass p-10 rounded-3xl mb-12">
+          <h2 class="text-3xl font-bold bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent mb-8 flex items-center">
+            <i class="fas fa-calendar-day mr-4 text-3xl"></i>
+            Today's Tasks
+          </h2>
+          <div id="today-tasks" class="space-y-4 max-h-96 overflow-y-auto"></div>
+        </div>
+
+        <!-- Overload Warning -->
+        <div id="overload-warning" class="glass p-8 rounded-3xl border-2 border-orange-500/30 bg-orange-500/10 hidden mb-12">
+          <div class="flex items-center space-x-4">
+            <div class="w-16 h-16 bg-orange-500/20 rounded-2xl flex items-center justify-center">
+              <i class="fas fa-exclamation-triangle text-2xl text-orange-400"></i>
+            </div>
+            <div>
+              <h3 class="text-2xl font-bold text-orange-300 mb-2">⚠️ Overload Alert!</h3>
+              <p class="text-orange-200 text-lg">You have more than 5 tasks due today. Consider rescheduling some tasks to avoid burnout.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Subjects Page -->
+      <section id="subjects-page" class="page hidden">
+        <div class="max-w-7xl mx-auto">
+          <div class="flex flex-col lg:flex-row gap-8 items-start lg:items-center justify-between mb-16">
+            <div>
+              <h1 class="text-5xl font-black bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent mb-4">
+                <i class="fas fa-book mr-4"></i>Subjects
+              </h1>
+              <p id="subjects-count-text" class="text-2xl text-gray-400 font-medium">0 subjects organized</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+              <input id="new-subject-name" type="text" placeholder="Enter subject name..." 
+                class="flex-1 lg:w-80 px-6 py-5 text-lg border-2 border-white/20 rounded-3xl glass focus:border-indigo-400 focus:outline-none transition-all bg-white/10 text-white placeholder-gray-400">
+              <button onclick="addSubject()" class="px-10 py-5 gradient-1 text-white font-bold rounded-3xl text-lg shadow-2xl hover:scale-105 transition-all duration-300">
+                <i class="fas fa-plus mr-2"></i>Add Subject
+              </button>
+            </div>
+          </div>
+          <div id="subjects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+        </div>
+      </section>
+
+      <!-- Subject Detail Modal -->
+      <div id="subject-detail-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 hidden flex items-center justify-center p-6 animate-fade-in">
+        <div class="glass max-w-4xl w-full max-h-[95vh] overflow-hidden rounded-3xl shadow-3xl">
+          <!-- Header -->
+          <div class="p-8 border-b border-white/20 bg-gradient-to-r from-white/10 to-transparent">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-6">
+                <div id="modal-subject-icon" class="w-20 h-20 rounded-3xl flex items-center justify-center text-3xl font-bold shadow-2xl"></div>
+                <div>
+                  <h2 id="modal-subject-name" class="text-4xl font-black text-white"></h2>
+                  <div class="flex items-center space-x-6 mt-2">
+                    <span id="modal-task-count" class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-2xl text-white font-semibold"></span>
+                    <span id="modal-notes-indicator" class="px-4 py-2 bg-gradient-to-r from-green-400/30 to-blue-400/30 backdrop-blur-sm rounded-2xl text-white font-semibold text-sm">Notes saved</span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center space-x-3">
+                <button onclick="deleteSubjectFromModal()" class="p-3 rounded-2xl bg-red-500/20 hover:bg-red-500/40 text-red-300 hover:text-red-100 transition-all">
+                  <i class="fas fa-trash text-xl"></i>
+                </button>
+                <button onclick="closeSubjectModal()" class="p-3 rounded-2xl bg-white/20 hover:bg-white/40 text-white hover:text-gray-900 transition-all">
+                  <i class="fas fa-times text-xl"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-8 max-h-[70vh] overflow-y-auto">
+            <!-- Notes Section -->
+            <div class="mb-12">
+              <label class="block text-2xl font-bold text-white mb-6 flex items-center">
+                <i class="fas fa-sticky-note mr-4 text-3xl"></i>Notes
+              </label>
+              <textarea id="subject-notes" rows="5" 
+                class="w-full p-8 text-lg border-2 border-white/20 rounded-3xl glass focus:border-indigo-400 focus:outline-none transition-all resize-vertical bg-white/10 text-white placeholder-gray-400 min-h-[120px]"
+                placeholder="Capture your thoughts, important concepts, formulas, or reminders here..."></textarea>
+            </div>
+
+            <!-- Tasks Section -->
+            <div>
+              <div class="flex items-center justify-between mb-8">
+                <h3 class="text-2xl font-bold text-white flex items-center">
+                  <i class="fas fa-tasks mr-4 text-3xl"></i>Tasks
+                </h3>
+                <button onclick="addTaskToModal()" class="px-8 py-4 gradient-4 text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center">
+                  <i class="fas fa-plus mr-2"></i>Add Task
+                </button>
+              </div>
+              <div id="modal-tasks-list" class="space-y-4"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- To-Do Page -->
+      <section id="todos-page" class="page hidden">
+        <div class="max-w-4xl mx-auto">
+          <div class="text-center mb-16">
+            <h1 class="text-5xl font-black bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent mb-6">
+              <i class="fas fa-list-check mr-4"></i>Quick To-Do
+            </h1>
+            <p id="todo-count" class="text-3xl font-bold text-gray-400">0 items</p>
+          </div>
+
+          <div class="glass p-12 rounded-4xl shadow-2xl">
+            <div class="flex gap-4 mb-10">
+              <input id="new-todo" type="text" placeholder="What needs to get done today? 💪" 
+                class="flex-1 px-8 py-6 text-xl border-2 border-white/20 rounded-3xl glass focus:border-green-400 focus:outline-none transition-all bg-white/10 text-white placeholder-gray-400">
+              <button onclick="addTodo()" class="px-12 py-6 gradient-4 text-white font-bold text-xl rounded-3xl shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300">
+                <i class="fas fa-plus"></i>
+              </button>
+            </div>
+            <div id="todos-list" class="space-y-4 max-h-96 overflow-y-auto"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
